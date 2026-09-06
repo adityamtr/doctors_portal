@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Stethoscope, Heart, Award, Clock, MapPin, Shield, ArrowRight, CheckCircle, GraduationCap, User, Calendar, Phone, Mail } from 'lucide-react'
 import { Button, Card, Badge } from '../components/UI'
 import { useDoctor, useServices, useClinics } from '../hooks/useApi'
+import { formatPrice } from '../utils/currency'
 
 const features = [
   { icon: Heart, title: 'Patient-Centered Care', description: 'Every decision puts you first. We listen, understand, and provide personalized care tailored to your needs.' },
@@ -16,18 +17,13 @@ export function Home() {
   const { data: services, loading: servicesLoading } = useServices({ is_active: true })
   const { data: clinics, loading: clinicsLoading } = useClinics({ is_active: true })
 
-  // Filter services for this doctor's specialization
-  const doctorServices = services?.filter(s => 
-    s.category.toLowerCase().includes(doctor?.specialization?.toLowerCase()) ||
-    doctor?.specialization?.toLowerCase().includes(s.category.toLowerCase())
-  ) || []
+  const doctorServices = services || []
 
   // Compute stats for this doctor
   const doctorClinicsCount = clinics?.length || 0
   const stats = [
-    { value: '1', label: 'Doctor' },
     { value: doctorServices.length, label: 'Services' },
-    { value: '500+', label: 'Happy Patients' },
+    { value: doctor?.experience_years || '...', label: 'Years Experience' },
     { value: doctorClinicsCount, label: 'Locations' },
   ]
 
@@ -59,7 +55,7 @@ export function Home() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="heading-1 text-gray-900 mb-6 text-balance"
             >
-              Your Health, {doctor?.name ? `${doctor?.name}'s` : 'Dr. Sarah Johnson'}'s Priority
+              Your Health, {doctor?.name ? `${doctor.name}'s` : 'Your Doctor\'s'} Priority
             </motion.h1>
 
             <motion.p 
@@ -68,7 +64,7 @@ export function Home() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-body text-gray-600 max-w-2xl mx-auto mb-10"
             >
-              Expert cardiology care from Dr. Sarah Johnson, MD, FACC. Board-certified with 15+ years of experience in preventive cardiology and heart health management.
+              {doctor?.bio || 'Personalized care from a qualified medical professional.'}
             </motion.p>
 
             <motion.div 
@@ -96,7 +92,7 @@ export function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8"
+            className="mt-20 max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 justify-items-center"
           >
             {stats.map((stat, index) => (
               <div key={stat.label} className="text-center">
@@ -123,9 +119,9 @@ export function Home() {
       <section className="section bg-white">
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="heading-2 text-gray-900 mb-4">Why Choose Dr. Sarah Johnson?</h2>
+            <h2 className="heading-2 text-gray-900 mb-4">Why Choose {doctor?.name || 'Your Doctor'}?</h2>
             <p className="text-body text-gray-600">
-              Board-certified cardiologist dedicated to providing exceptional, personalized heart care.
+              {doctor?.title || 'Personalized care from a qualified medical professional.'}
             </p>
           </div>
 
@@ -166,8 +162,8 @@ export function Home() {
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%230ea5e9%22 fill-opacity=%220.05%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 36v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" />
                     <div className="relative z-10 text-center p-8">
                       <Stethoscope className="w-24 h-24 text-primary-200 mx-auto mb-6" />
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Dr. Sarah Johnson</h3>
-                      <p className="text-primary-600 font-medium">MD, FACC - Cardiologist</p>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">{doctor?.name || 'Doctor Profile'}</h3>
+                      <p className="text-primary-600 font-medium">{doctor?.title || doctor?.specialization}</p>
                     </div>
                   </div>
                 </div>
@@ -180,21 +176,16 @@ export function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
               >
-                <h2 className="heading-2 text-gray-900 mb-6">Meet Dr. Sarah Johnson</h2>
+                <h2 className="heading-2 text-gray-900 mb-6">Meet {doctor?.name || 'Your Doctor'}</h2>
                 <div className="prose prose-gray max-w-none space-y-4">
                   <p className="text-gray-600 leading-relaxed">
-                    Dr. Sarah Johnson is a board-certified cardiologist with over 15 years of experience in treating heart conditions. 
-                    She specializes in preventive cardiology, heart failure management, and interventional procedures. 
-                    Dr. Johnson is dedicated to providing compassionate, evidence-based care to all patients.
+                    {doctor?.bio || 'Doctor profile information is loading.'}
                   </p>
                   <p className="text-gray-600 leading-relaxed">
-                    She received her MD from Harvard Medical School, completed her residency at Johns Hopkins Hospital, 
-                    and fellowship in Cardiology at Mayo Clinic. Dr. Johnson is certified by the American Board of Internal Medicine 
-                    in both Cardiovascular Disease and Internal Medicine.
+                    {doctor?.education || 'Education information is loading.'}
                   </p>
                   <p className="text-gray-600 leading-relaxed">
-                    Dr. Johnson speaks English, Spanish, and French, and is committed to making quality cardiac care 
-                    accessible to diverse communities.
+                    {doctor?.languages ? `Languages: ${doctor.languages}.` : 'Languages information is loading.'}
                   </p>
                 </div>
                 <div className="mt-8 flex flex-wrap gap-4">
@@ -220,12 +211,12 @@ export function Home() {
       {/* Services Section */}
       <section className="section bg-white">
         <div className="container">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
-            <div>
-              <h2 className="heading-2 text-gray-900 mb-4">Cardiology Services</h2>
-              <p className="text-body text-gray-600">Comprehensive heart care services tailored to your cardiovascular health needs.</p>
+          <div className="flex flex-col items-center text-center mb-12">
+            <div className="max-w-3xl">
+              <h2 className="heading-2 text-gray-900 mb-4">{doctor?.specialization || 'Medical'} Services</h2>
+              <p className="text-body text-gray-600">Services available from {doctor?.name || 'your doctor'}.</p>
             </div>
-            <Link to="/services" className="btn-outline mt-4 md:mt-0">
+            <Link to="/services" className="btn-outline mt-6">
               View All Services
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
@@ -242,7 +233,7 @@ export function Home() {
               ))}
             </div>
           ) : doctorServices.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="max-w-5xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
               {doctorServices.slice(0, 6).map((service, index) => (
                 <motion.div
                   key={service.id}
@@ -251,7 +242,7 @@ export function Home() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <div className="card-hover p-6 h-full">
+                  <div className="card-hover p-6 h-full w-full">
                     <div className="flex items-start justify-between mb-4">
                       <h3 className="font-semibold text-gray-900">{service.name}</h3>
                       <Badge variant="outline">{service.category}</Badge>
@@ -263,7 +254,7 @@ export function Home() {
                         {service.duration_minutes} min
                       </span>
                       {service.price && (
-                        <span className="font-semibold text-gray-900">${(service.price / 100).toFixed(2)}</span>
+                        <span className="font-semibold text-gray-900">{formatPrice(service.price)}</span>
                       )}
                     </div>
                   </div>

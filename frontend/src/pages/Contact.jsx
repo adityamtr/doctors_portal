@@ -5,6 +5,7 @@ import * as yup from 'yup'
 import { motion } from 'framer-motion'
 import { Mail, Phone, MapPin, Clock, Send, CheckCircle, Loader2, Building2, Stethoscope, User, MessageSquare } from 'lucide-react'
 import { Button, Input, Textarea, Select, Card, Badge } from '../components/UI'
+import { useClinics, useDoctor } from '../hooks/useApi'
 
 const contactSchema = yup.object().shape({
   name: yup.string().required('Name is required').min(2, 'Name must be at least 2 characters'),
@@ -28,7 +29,7 @@ const subjectOptions = [
 const faqs = [
   {
     question: 'How do I book an appointment?',
-    answer: 'You can book an appointment online through our website by clicking "Book Appointment" in the navigation. You\'ll be guided through selecting a doctor, service, location, date, and time. You can also call us at (555) 010-0000 to book by phone.'
+    answer: 'You can book an appointment online through our website by clicking "Book Appointment" in the navigation. You\'ll be guided through selecting a doctor, service, location, date, and time.'
   },
   {
     question: 'What insurance plans do you accept?',
@@ -48,17 +49,7 @@ const faqs = [
   },
   {
     question: 'How do I access my medical records?',
-    answer: 'You can access your medical records through our patient portal. If you need assistance, please contact our medical records department at records@doctorsportal.com or call (555) 010-0000.'
-  },
-]
-
-const clinicContacts = [
-  {
-    name: 'Downtown Medical Center',
-    address: '123 Main Street, Suite 400, New York, NY 10001',
-    phone: '+1 (212) 555-0100',
-    email: 'downtown@doctorsportal.com',
-    hours: 'Mon-Fri: 8AM-6PM, Sat: 9AM-1PM',
+    answer: 'You can access your medical records through our patient portal. If you need assistance, please contact a clinic using the contact details listed on this page.'
   },
 ]
 
@@ -66,6 +57,10 @@ export function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState(null) // 'success' | 'error' | null
   const [expandedFaq, setExpandedFaq] = useState(null)
+  const { data: clinics, loading: clinicsLoading } = useClinics({ is_active: true })
+  const { data: doctor, loading: doctorLoading } = useDoctor(1)
+  const clinicContacts = clinics || []
+  const primaryClinic = clinicContacts[0]
 
   const {
     register,
@@ -137,8 +132,8 @@ export function Contact() {
           <div className="grid md:grid-cols-3 gap-6 mb-16">
             {[
               { icon: MapPin, title: 'Visit Us', color: 'bg-red-100 text-red-600', items: clinicContacts.map(c => `${c.name}: ${c.address}`) },
-              { icon: Phone, title: 'Call Us', color: 'bg-green-100 text-green-600', items: ['Main: (555) 010-0000', 'Appointments: (555) 010-0001'] },
-              { icon: Mail, title: 'Email Us', color: 'bg-blue-100 text-blue-600', items: ['General: info@doctorsportal.com', 'Appointments: appointments@doctorsportal.com'] },
+              { icon: Phone, title: 'Call Us', color: 'bg-green-100 text-green-600', items: clinicContacts.map(c => `${c.name}: ${c.phone}`) },
+              { icon: Mail, title: 'Email Us', color: 'bg-blue-100 text-blue-600', items: clinicContacts.map(c => `${c.name}: ${c.email}`) },
             ].map((card, index) => (
               <motion.div
                 key={card.title}
@@ -176,7 +171,7 @@ export function Contact() {
                   <Building2 className="w-10 h-10 text-primary-600 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0" />
                   <div>
                     <h4 className="font-semibold text-gray-900">{clinic.name}</h4>
-                    <p className="text-gray-500 text-sm mt-1">{clinic.address}</p>
+                    <p className="text-gray-500 text-sm mt-1">{clinic.address}, {clinic.city}, {clinic.state} {clinic.zip_code}</p>
                   </div>
                 </div>
                 <div className="space-y-3 text-sm">
@@ -190,7 +185,7 @@ export function Contact() {
                   </div>
                   <div className="flex items-center gap-3 text-gray-600">
                     <Clock className="w-5 h-5 text-primary-600 flex-shrink-0" />
-                    <span>{clinic.hours}</span>
+                    <span>{clinic.hours_monday}</span>
                   </div>
                 </div>
               </motion.div>
@@ -383,9 +378,9 @@ export function Contact() {
               For appointment-related questions, our team is available during business hours.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="tel:+1-555-0100" className="btn-secondary px-8 py-3">
+                    <a href={primaryClinic ? `tel:${primaryClinic.phone}` : '#'} className="btn-secondary px-8 py-3">
                 <Phone className="w-5 h-5 mr-2" />
-                Call Now: (555) 010-0000
+                {primaryClinic?.phone || 'Call clinic'}
               </a>
               <a href="/book-appointment" className="btn-outline border-white text-white hover:bg-white/10 px-8 py-3">
                 <Stethoscope className="w-5 h-5 mr-2" />

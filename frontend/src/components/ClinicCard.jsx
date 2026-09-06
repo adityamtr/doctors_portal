@@ -1,9 +1,13 @@
 import { MapPin, Phone, Mail, Clock, CheckCircle, MapPin as MapPinIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { Card, Badge } from './UI'
+import { useAppointmentBooking } from '../context/AppointmentContext'
 
 const dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 export function ClinicCard({ clinic, showDetails = true }) {
+  const navigate = useNavigate()
+  const { setSelectedClinic } = useAppointmentBooking()
   const getHoursForDay = (day) => {
     const hoursMap = {
       0: clinic.hours_monday,
@@ -95,10 +99,21 @@ export function ClinicCard({ clinic, showDetails = true }) {
 
       {showDetails && (
         <div className="p-6 pt-0 border-t border-gray-100 flex gap-2">
-          <button className="btn-outline flex-1 text-sm py-2">
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${clinic.latitude},${clinic.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-outline flex-1 text-sm py-2 text-center"
+          >
             Get Directions
-          </button>
-          <button className="btn-primary flex-1 text-sm py-2">
+          </a>
+          <button
+            className="btn-primary flex-1 text-sm py-2"
+            onClick={() => {
+              setSelectedClinic(clinic)
+              navigate('/book-appointment')
+            }}
+          >
             Book Here
           </button>
         </div>

@@ -5,12 +5,6 @@ import { Button, Input, Select, Card, Badge } from '../components/UI'
 import { DoctorCard } from '../components/DoctorCard'
 import { useDoctors } from '../hooks/useApi'
 
-const specialties = [
-  'All', 'Cardiology', 'Pediatrics', 'Dermatology', 
-  'Orthopedics', 'OB/GYN', 'Neurology', 'Oncology', 
-  'Psychiatry', 'Radiology'
-]
-
 const sortOptions = [
   { value: 'name', label: 'Name (A-Z)' },
   { value: 'experience', label: 'Experience (High-Low)' },
@@ -28,6 +22,10 @@ export function Doctors() {
     specialization: selectedSpecialty !== 'All' ? selectedSpecialty : undefined,
     is_active: true,
   })
+  const specialties = useMemo(() => [
+    'All',
+    ...new Set((doctors || []).map(doctor => doctor.specialization).filter(Boolean)),
+  ], [doctors])
 
   const filteredDoctors = useMemo(() => {
     if (!doctors) return []
@@ -102,7 +100,7 @@ export function Doctors() {
       </section>
 
       {/* Search & Filters */}
-      <section className="bg-white border-b border-gray-100 sticky top-16 z-40">
+      <section className="bg-white border-b border-gray-100 sticky top-16 md:top-20 z-40">
         <div className="container py-4">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             {/* Search */}

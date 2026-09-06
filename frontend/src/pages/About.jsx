@@ -1,15 +1,7 @@
 import { motion } from 'framer-motion'
 import { Users, Heart, Shield, Award, Clock, MapPin, Stethoscope, GraduationCap, Building2, CheckCircle } from 'lucide-react'
 import { Card, Badge, Button } from '../components/UI'
-
-// Single doctor profile
-const doctor = {
-  name: 'Dr. Sarah Johnson',
-  role: 'Chief Medical Officer',
-  specialty: 'Cardiology',
-  image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=face',
-  bio: 'Board-certified cardiologist with 15+ years of experience in preventive cardiology and heart failure management.'
-}
+import { useDoctors, useDoctor, useClinics, useServices } from '../hooks/useApi'
 
 const values = [
   {
@@ -44,15 +36,14 @@ const values = [
   },
 ]
 
-const milestones = [
-  { year: '2020', title: 'Founded', description: 'Doctor\'s Portal was founded with a mission to make quality healthcare accessible.' },
-  { year: '2021', title: 'First Patient', description: 'First patient appointment booked with Dr. Sarah Johnson.' },
-  { year: '2022', title: 'Online Booking', description: 'Launched online appointment booking platform.' },
-  { year: '2023', title: 'First Clinic', description: 'Opened first clinic location where Dr. Johnson practices.' },
-  { year: '2024', title: '1000+ Patients', description: 'Served over 1,000 patients with 98% satisfaction rate.' },
-]
-
 export function About() {
+  const { data: doctor, loading: doctorLoading } = useDoctor(1)
+  const { data: doctors, loading: doctorsLoading } = useDoctors({ is_active: true })
+  const { data: clinics, loading: clinicsLoading } = useClinics({ is_active: true })
+  const { data: services, loading: servicesLoading } = useServices({ is_active: true })
+  const loading = doctorLoading || doctorsLoading || clinicsLoading || servicesLoading
+  const specialties = [...new Set((services || []).map(service => service.category))]
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -65,7 +56,7 @@ export function About() {
               className="mb-8"
             >
               <Badge variant="primary" className="text-lg px-4 py-2 mb-6">
-                About Doctor's Portal
+                About CarePoint
               </Badge>
             </motion.div>
 
@@ -104,7 +95,7 @@ export function About() {
                 <h2 className="heading-2 text-gray-900 mb-6">Our Mission</h2>
                 <div className="prose prose-gray max-w-none space-y-4">
                   <p className="text-gray-600 leading-relaxed">
-                    At Doctor's Portal, we believe that everyone deserves access to exceptional healthcare without the hassle. 
+                    At CarePoint, we believe that everyone deserves access to exceptional healthcare without the hassle. 
                     Our mission is to bridge the gap between patients and top-tier medical professionals through innovative technology 
                     and a patient-first approach.
                   </p>
@@ -132,7 +123,7 @@ export function About() {
                     <Stethoscope className="w-32 h-32 text-primary-200 mx-auto mb-6" />
                     <h3 className="text-3xl font-bold text-gray-900 mb-4">Your Health Journey Starts Here</h3>
                     <p className="text-gray-600 text-lg max-w-md mx-auto">
-                      Join thousands of patients who trust Doctor's Portal for their healthcare needs.
+                      Book your care with CarePoint.
                     </p>
                   </div>
                 </div>
@@ -196,7 +187,7 @@ export function About() {
               viewport={{ once: true }}
               className="heading-2 text-gray-900 mb-4"
             >
-              Dr. Sarah Johnson
+              {doctor?.name || 'Doctor Profile'}
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -205,23 +196,23 @@ export function About() {
               transition={{ delay: 0.1 }}
               className="text-body text-gray-600"
             >
-              Chief Medical Officer - Cardiology
+              {doctor ? `${doctor.title} - ${doctor.specialization}` : 'Loading profile...'}
             </motion.p>
           </div>
 
           <div className="aspect-square max-w-md mx-auto rounded-3xl overflow-hidden mb-8">
             <img
-              src={doctor.image}
-              alt={doctor.name}
+              src={doctor?.profile_image}
+              alt={doctor?.name || 'Doctor profile'}
               className="w-full h-full object-cover"
             />
           </div>
 
           <div className="card p-8 text-center">
-            <h3 className="font-semibold text-gray-900 mb-2">{doctor.name}</h3>
-            <p className="text-primary-600 text-sm font-medium mb-1">{doctor.role}</p>
-            <Badge variant="outline" className="mb-4">{doctor.specialty}</Badge>
-            <p className="text-gray-600">{doctor.bio}</p>
+            <h3 className="font-semibold text-gray-900 mb-2">{doctor?.name || 'Loading profile...'}</h3>
+            <p className="text-primary-600 text-sm font-medium mb-1">{doctor?.title}</p>
+            <Badge variant="outline" className="mb-4">{doctor?.specialization}</Badge>
+            <p className="text-gray-600">{doctor?.bio}</p>
           </div>
 
           {/* Core Values */}
@@ -244,64 +235,15 @@ export function About() {
             ))}
           </div>
 
-          {/* Milestones */}
-          <section className="section bg-gray-50">
-            <div className="container">
-              <div className="text-center max-w-3xl mx-auto mb-16">
-                <motion.h2
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="heading-2 text-gray-900 mb-4"
-                >
-                  Our Journey
-                </motion.h2>
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                  className="text-body text-gray-600"
-                >
-                  Key milestones in our mission to transform healthcare access.
-                </motion.p>
-              </div>
-
-              <div className="relative max-w-3xl mx-auto">
-                {/* Timeline line */}
-                <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-primary-200" />
-                
-                {milestones.map((milestone, index) => (
-                  <motion.div
-                    key={milestone.year}
-                    initial={{ opacity: 0, x: -30 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: index * 0.15 }}
-                    className="relative pl-20 pb-12 last:pb-0"
-                  >
-                    <div className="absolute left-0 top-0 w-16 h-16 bg-white rounded-full border-4 border-primary-500 flex items-center justify-center z-10">
-                      <span className="font-bold text-primary-600">{milestone.year}</span>
-                    </div>
-                    <Card className="p-6 ml-4">
-                      <h3 className="font-semibold text-gray-900 mb-2">{milestone.title}</h3>
-                      <p className="text-gray-600">{milestone.description}</p>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </section>
-
           {/* Stats */}
           <section className="section bg-primary-600">
             <div className="container">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                 {[
-                  { value: '50+', label: 'Board-Certified Doctors' },
-                  { value: '20+', label: 'Medical Specialties' },
-                  { value: '5', label: 'Clinic Locations' },
-                  { value: '15K+', label: 'Happy Patients' },
+                  { value: loading ? '...' : (doctors || []).length, label: 'Doctors' },
+                  { value: loading ? '...' : specialties.length, label: 'Service Categories' },
+                  { value: loading ? '...' : (clinics || []).length, label: 'Clinic Locations' },
+                  { value: loading ? '...' : (services || []).length, label: 'Services' },
                 ].map((stat, index) => (
                   <motion.div
                     key={stat.label}
@@ -328,7 +270,7 @@ export function About() {
               >
                 <h2 className="heading-2 text-gray-900 mb-4">Ready to Experience Better Healthcare?</h2>
                 <p className="text-body text-gray-600 max-w-2xl mx-auto mb-8">
-                  Join thousands of patients who trust Doctor's Portal for their healthcare needs. 
+                  Book your next appointment with CarePoint. 
                   Book your first appointment today.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

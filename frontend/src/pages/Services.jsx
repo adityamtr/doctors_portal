@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Filter, X, Heart, Baby, Sparkles, Bone, User, Stethoscope, Tag, DollarSign, Clock } from 'lucide-react'
+import { Search, Filter, X, Heart, Baby, Sparkles, Bone, User, Stethoscope, Tag, Clock } from 'lucide-react'
 import { Button, Input, Select, Card, Badge } from '../components/UI'
 import { ServiceCard } from '../components/ServiceCard'
 import { useServices, useDoctor } from '../hooks/useApi'
@@ -45,6 +45,7 @@ const categoryColors = {
 
 export function Services() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('All')
   const [sortBy, setSortBy] = useState('name')
   const [showFilters, setShowFilters] = useState(false)
 
@@ -57,10 +58,13 @@ export function Services() {
 
   const filteredServices = useMemo(() => {
     if (!services) return []
-    
+
     let result = [...services]
-    
-    // Search filter
+
+    if (selectedCategory !== 'All') {
+      result = result.filter(service => service.category === selectedCategory)
+    }
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       result = result.filter(service => 
@@ -69,8 +73,7 @@ export function Services() {
         (service.description && service.description.toLowerCase().includes(query))
       )
     }
-    
-    // Sort
+
     switch (sortBy) {
       case 'name':
         result.sort((a, b) => a.name.localeCompare(b.name))
@@ -90,9 +93,9 @@ export function Services() {
       default:
         break
     }
-    
+
     return result
-  }, [services, searchQuery, sortBy])
+  }, [services, searchQuery, selectedCategory, sortBy])
 
   const categoriesWithServices = useMemo(() => {
     if (!services) return ['All']
@@ -102,6 +105,7 @@ export function Services() {
 
   const clearFilters = () => {
     setSearchQuery('')
+    setSelectedCategory('All')
     setSortBy('name')
   }
 
@@ -124,14 +128,14 @@ export function Services() {
               transition={{ delay: 0.1 }}
               className="text-body text-gray-600"
             >
-              Cardiology services offered by Dr. Sarah Johnson
+              {doctor?.specialization || 'Medical'} services offered by {doctor?.name || 'your doctor'}
             </motion.p>
           </div>
         </div>
       </section>
 
       {/* Search & Filters */}
-      <section className="bg-white border-b border-gray-100 sticky top-16 z-40">
+      <section className="bg-white border-b border-gray-100 sticky top-16 md:top-20 z-40">
         <div className="container py-4">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             {/* Search */}
@@ -148,37 +152,47 @@ export function Services() {
 
             {/* Sort */}
             <div className="relative">
-              <Select className="select select-sm" onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue>
-                    <SelectPlaceholder>Sort by</SelectPlaceholder>
-                  </SelectValue>
-                  <SelectMenu>
-                    {sortOptions.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectMenu>
-                </SelectTrigger>
-              </Select>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="input pr-10 appearance-none bg-no-repeat bg-right"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                  backgroundSize: '1.5rem 1.5rem',
+                  backgroundPosition: 'right 0.5rem center',
+                }}
+              >
+                {sortOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
 
           {/* Active Filters */}
-          {searchQuery && (
+          {(searchQuery || selectedCategory !== 'All') && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               className="mt-4 flex flex-wrap items-center gap-2"
             >
-              <Badge variant="outline" className="flex items-center gap-1">
-                Search: "{searchQuery}"
-                <button onClick={() => setSearchQuery('')} className="ml-1">
-                  <X className="w-3 h-3" />
-                </button>
-              </Badge>
+              {searchQuery && (
+                <Badge variant="outline" className="flex items-center gap-1">
+                  Search: "{searchQuery}"
+                  <button onClick={() => setSearchQuery('')} className="ml-1">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedCategory !== 'All' && (
+                <Badge variant="primary" className="flex items-center gap-1">
+                  {selectedCategory}
+                  <button onClick={() => setSelectedCategory('All')} className="ml-1">
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              )}
             </motion.div>
           )}
 

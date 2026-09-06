@@ -12,7 +12,7 @@ async def lifespan(app: FastAPI):
     # Shutdown (if needed)
 
 app = FastAPI(
-    title="Doctor's Portal API",
+    title="CarePoint API",
     description="A comprehensive API for managing doctor appointments, services, and clinic information",
     version="1.0.0",
     lifespan=lifespan
@@ -37,7 +37,7 @@ app.include_router(schedules.router, prefix="/api")
 @app.get("/")
 def root():
     return {
-        "message": "Welcome to Doctor's Portal API",
+        "message": "Welcome to CarePoint API",
         "version": "1.0.0",
         "docs": "/docs",
         "redoc": "/redoc"

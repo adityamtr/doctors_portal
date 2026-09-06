@@ -4,6 +4,7 @@ import { CheckCircle, Calendar, Clock, MapPin, User, Mail, Phone, Stethoscope, B
 import { Button, Card, Badge } from '../components/UI'
 import { useAppointment } from '../hooks/useApi'
 import { format } from 'date-fns'
+import { formatPrice } from '../utils/currency'
 
 export function AppointmentConfirmation() {
   const { id } = useParams()
@@ -146,7 +147,7 @@ export function AppointmentConfirmation() {
                       <p className="font-semibold text-gray-900">{appointment.service?.name || 'TBD'}</p>
                       <p className="text-gray-500 text-sm">
                         {appointment.service?.category} • {appointment.duration_minutes} min
-                        {appointment.service?.price && ` • $${(appointment.service.price / 100).toFixed(2)}`}
+                        {appointment.service?.price && ` • ${formatPrice(appointment.service.price)}`}
                       </p>
                     </div>
                   </div>

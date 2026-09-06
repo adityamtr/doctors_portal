@@ -8,7 +8,7 @@ export function Navbar() {
 
   const navLinks = [
     { path: '/', label: 'Home' },
-    { path: '/doctors', label: 'Doctors' },
+    { path: '/doctor', label: 'Doctor Profile' },
     { path: '/services', label: 'Services' },
     { path: '/clinics', label: 'Locations' },
     { path: '/about', label: 'About' },
@@ -25,9 +25,9 @@ export function Navbar() {
       <div className="container">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 text-primary-600 hover:opacity-80 transition-opacity">
-            <Stethoscope className="w-8 h-8" />
-            <span className="font-bold text-xl md:text-2xl">Doctor's Portal</span>
+          <Link to="/" className="flex min-w-0 items-center gap-2 text-primary-600 hover:opacity-80 transition-opacity">
+            <Stethoscope className="w-8 h-8 flex-shrink-0" />
+            <span className="font-bold text-lg md:text-2xl truncate">CarePoint</span>
           </Link>
 
           {/* Desktop Navigation */}

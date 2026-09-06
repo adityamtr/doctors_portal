@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Run script for the Doctor's Portal Backend.
+Run script for the CarePoint Backend.
 """
 import uvicorn
 import os
