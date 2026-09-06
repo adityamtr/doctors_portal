@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { Star, MapPin, Clock, CheckCircle } from 'lucide-react'
 import { Card, Badge, Avatar } from './UI'
+import { useAppointmentBooking } from '../context/AppointmentContext'
 
 export function DoctorCard({ doctor, showActions = true }) {
+  const { setSelectedDoctor } = useAppointmentBooking()
   const specialties = [
     'Cardiology', 'Pediatrics', 'Dermatology', 
     'Orthopedics', 'OB/GYN', 'Neurology', 
@@ -82,7 +84,7 @@ export function DoctorCard({ doctor, showActions = true }) {
               to="/book-appointment"
               className="btn-primary text-sm py-2 px-4"
               onClick={(e) => {
-                // Could set selected doctor in context here
+                setSelectedDoctor(doctor)
               }}
             >
               Book Now

@@ -7,6 +7,7 @@ import { Button, Input, Select, Textarea, Card, Badge, Modal } from './UI'
 import { useAppointmentBooking } from '../context/AppointmentContext'
 import { useCreateAppointment, useDoctorAvailability } from '../hooks/useApi'
 import { format, parseISO, addDays, isBefore, startOfDay } from 'date-fns'
+import { formatPrice } from '../utils/currency'
 
 const validationSchema = yup.object().shape({
   name: yup.string().required('Full name is required').min(2, 'Name must be at least 2 characters'),
@@ -397,7 +398,7 @@ export function AppointmentForm({ onSuccess, onBack }) {
           {selectedService?.price && (
             <div className="flex justify-between border-t pt-3">
               <span className="text-gray-500">Estimated Cost</span>
-              <span className="font-semibold text-primary-600">${(selectedService.price / 100).toFixed(2)}</span>
+              <span className="font-semibold text-primary-600">{formatPrice(selectedService.price)}</span>
             </div>
           )}
         </div>

@@ -1,4 +1,4 @@
-# Doctor's Portal
+# CarePoint
 
 A comprehensive, full-stack healthcare appointment booking platform built with **FastAPI** (Python) backend, **React** (Vite) frontend, and **SQLite/PostgreSQL** database.
 
@@ -91,11 +91,14 @@ doctors_portal/
    npm install
    ```
 
-3. **Seed the database with sample data**
+3. **Seed the database with demo data**
    ```bash
    cd backend
    python seed_data.py
    ```
+   The single-doctor demo data is maintained in `backend/seed_data.yaml`.
+   Running the seeder resets existing seed records before loading the YAML,
+   so no manual database deletion is required.
 
 4. **Start development servers**
    ```bash
@@ -192,7 +195,7 @@ DATABASE_URL=sqlite:///./doctors_portal.db
 # For PostgreSQL:
 # DATABASE_URL=postgresql://user:password@localhost/doctors_portal
 
-APP_NAME=Doctor's Portal
+APP_NAME=CarePoint
 APP_VERSION=1.0.0
 DEBUG=True
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000

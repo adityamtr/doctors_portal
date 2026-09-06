@@ -1,0 +1,95 @@
+doctor:
+  name: Dr. Sarah Johnson
+  title: MD, FACC - Cardiologist
+  bio: Dr. Sarah Johnson is a board-certified cardiologist with over 15 years of experience in treating heart conditions. She specializes in preventive cardiology, heart failure management, and interventional procedures.
+  specialization: Cardiology
+  experience_years: 15
+  education: MD from Harvard Medical School, Residency at Johns Hopkins Hospital, Fellowship in Cardiology at Mayo Clinic
+  certifications: American Board of Internal Medicine - Cardiovascular Disease, American Board of Internal Medicine - Internal Medicine
+  languages: English, Spanish, French
+  email: sarah.johnson@doctorsportal.com
+  phone: +1-555-0101
+  profile_image: https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=face
+
+services:
+  - name: Initial Cardiology Consultation
+    description: Comprehensive heart health evaluation including ECG and risk assessment
+    category: Consultation
+    duration_minutes: 45
+    price: 25000
+  - name: Follow-up Cardiology Visit
+    description: Follow-up appointment for ongoing heart condition management
+    category: Consultation
+    duration_minutes: 30
+    price: 15000
+  - name: Echocardiogram
+    description: Ultrasound imaging of the heart to assess structure and function
+    category: Diagnostic
+    duration_minutes: 45
+    price: 30000
+  - name: Stress Test
+    description: Exercise stress test to evaluate heart function under exertion
+    category: Diagnostic
+    duration_minutes: 60
+    price: 40000
+  - name: Holter Monitor
+    description: 24-48 hour continuous heart rhythm monitoring
+    category: Diagnostic
+    duration_minutes: 30
+    price: 20000
+
+clinics:
+  - name: CarePoint Clinic - Downtown
+    address: 123 Main Street, Suite 400
+    city: New York
+    state: NY
+    zip_code: '10001'
+    phone: +1-212-555-0100
+    email: downtown@doctorsportal.com
+    latitude: '40.7505'
+    longitude: '-73.9934'
+    hours_monday: 8:00 AM - 6:00 PM
+    hours_tuesday: 8:00 AM - 6:00 PM
+    hours_wednesday: 8:00 AM - 6:00 PM
+    hours_thursday: 8:00 AM - 6:00 PM
+    hours_friday: 8:00 AM - 5:00 PM
+    hours_saturday: 9:00 AM - 1:00 PM
+    hours_sunday: Closed
+  - name: CarePoint Clinic - Westside
+    address: 456 Broadway Avenue, Suite 200
+    city: New York
+    state: NY
+    zip_code: '10036'
+    phone: +1-212-555-0200
+    email: westside@doctorsportal.com
+    latitude: '40.7580'
+    longitude: '-73.9855'
+    hours_monday: 9:00 AM - 5:00 PM
+    hours_tuesday: 9:00 AM - 5:00 PM
+    hours_wednesday: 9:00 AM - 5:00 PM
+    hours_thursday: 9:00 AM - 5:00 PM
+    hours_friday: 9:00 AM - 3:00 PM
+    hours_saturday: Closed
+    hours_sunday: Closed
+
+schedules:
+  - clinic_index: 0
+    day_of_week: 0
+    start_time: '09:00'
+    end_time: '13:00'
+  - clinic_index: 0
+    day_of_week: 2
+    start_time: '09:00'
+    end_time: '13:00'
+  - clinic_index: 0
+    day_of_week: 4
+    start_time: '09:00'
+    end_time: '13:00'
+  - clinic_index: 1
+    day_of_week: 1
+    start_time: '09:00'
+    end_time: '13:00'
+  - clinic_index: 1
+    day_of_week: 3
+    start_time: '09:00'
+    end_time: '13:00'

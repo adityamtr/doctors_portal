@@ -1,20 +1,24 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useState, useEffect, useMemo } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, MapPin, Clock, Calendar, Phone, Mail, Star, Award, GraduationCap, Languages, CheckCircle, Heart, Stethoscope } from 'lucide-react'
 import { Button, Card, Badge, Avatar, Modal } from '../components/UI'
 import { useDoctor, useServices, useClinics, useSchedules, useDoctorAvailability } from '../hooks/useApi'
 import { useAppointmentBooking } from '../context/AppointmentContext'
 import { format, parseISO, addDays, startOfDay, getDay } from 'date-fns'
+import { formatPrice } from '../utils/currency'
 
 const dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 export function DoctorDetail() {
-  const { id } = useParams()
-  const { data: doctor, loading, error } = useDoctor(id)
+  const navigate = useNavigate()
+  const { id: routeId } = useParams()
+  const doctorId = routeId ? Number(routeId) : 1
+
+  const { data: doctor, loading, error } = useDoctor(doctorId)
   const { data: services } = useServices({ is_active: true })
   const { data: clinics } = useClinics({ is_active: true })
-  const { data: schedules } = useSchedules({ doctor_id: parseInt(id), is_available: true })
+  const { data: schedules } = useSchedules({ doctor_id: doctorId, is_available: true })
   const { check: checkAvailability, loading: checkingAvailability, slots: availableSlots } = useDoctorAvailability()
   
   const { 
@@ -66,7 +70,7 @@ export function DoctorDetail() {
     setSelectedDate(date)
     if (selectedClinic && doctor) {
       const duration = selectedService?.duration_minutes || 30
-      checkAvailability(doctor.id, selectedClinic.id, date, duration)
+      checkAvailability(doctorId, selectedClinic.id, date, duration)
     }
   }
 
@@ -78,9 +82,8 @@ export function DoctorDetail() {
   }
 
   const handleBookAppointment = () => {
-    if (selectedDoctor && selectedService && selectedClinic && selectedDate && selectedTime) {
-      setShowBookingModal(true)
-    }
+    setSelectedDoctor(doctor)
+    navigate('/book-appointment')
   }
 
   const isSlotAvailable = (time) => {
@@ -120,39 +123,6 @@ export function DoctorDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation Header */}
-      <nav className="bg-white border-b border-gray-100 sticky top-16 z-40" aria-label="Doctor profile tabs">
-        <div className="container">
-          <div className="flex items-center gap-4 overflow-x-auto pb-4">
-            <Link to="/doctors" className="btn-ghost text-sm flex-shrink-0">
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Back
-            </Link>
-            <div className="flex gap-1 bg-gray-100 rounded-lg p-1 flex-shrink-0">
-              {[
-                { id: 'overview', label: 'Overview', icon: Stethoscope },
-                { id: 'services', label: 'Services', icon: Heart },
-                { id: 'schedule', label: 'Schedule', icon: Calendar },
-                { id: 'locations', label: 'Locations', icon: MapPin },
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    activeTab === tab.id
-                      ? 'bg-white text-primary-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  <tab.icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <div className="container py-8">
         {/* Doctor Header */}
         <motion.div
@@ -169,8 +139,8 @@ export function DoctorDetail() {
                 className="flex-shrink-0"
               />
               <div className="flex-1 text-center md:text-left">
-                <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
-                  <h1 className="heading-2 text-gray-900">{doctor.name}</h1>
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-3">
+                  <h1 className="heading-2 text-gray-900 break-words">{doctor.name}</h1>
                   {doctor.is_active && (
                     <Badge variant="success">
                       <CheckCircle className="w-3 h-3 mr-1" />
@@ -309,24 +279,6 @@ export function DoctorDetail() {
                   </div>
                 </Card>
 
-                {/* Quick Actions */}
-                <Card className="p-6">
-                  <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                  <div className="space-y-3">
-                    <Button className="w-full justify-start" onClick={() => setActiveTab('services')}>
-                      <Heart className="w-5 h-5 mr-2" />
-                      View Services
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start" onClick={() => setActiveTab('schedule')}>
-                      <Calendar className="w-5 h-5 mr-2" />
-                      View Schedule
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start" onClick={() => setActiveTab('locations')}>
-                      <MapPin className="w-5 h-5 mr-2" />
-                      View Locations
-                    </Button>
-                  </div>
-                </Card>
               </div>
             </div>
           )}
@@ -357,7 +309,7 @@ export function DoctorDetail() {
                           {service.duration_minutes} min
                         </span>
                         {service.price && (
-                          <span className="font-semibold text-gray-900">${(service.price / 100).toFixed(2)}</span>
+                          <span className="font-semibold text-gray-900">{formatPrice(service.price)}</span>
                         )}
                       </div>
                     </Card>
@@ -379,7 +331,7 @@ export function DoctorDetail() {
                           <h3 className="font-semibold text-gray-900">{clinic.name}</h3>
                           <p className="text-gray-500 text-sm">{clinic.address}, {clinic.city}</p>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => { setSelectedClinic(clinic); setActiveTab('overview'); }}>
+                        <Button variant="outline" size="sm" onClick={() => { setSelectedDoctor(doctor); setSelectedClinic(clinic); navigate('/book-appointment') }}>
                           Book Here
                         </Button>
                       </div>
@@ -502,5 +454,3 @@ export function DoctorDetail() {
     </div>
   )
 }
-
-import { useMemo } from 'react'

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
-import { Stethoscope, Heart, Baby, Sparkles, Bone, User, Clock, DollarSign } from 'lucide-react'
+import { Stethoscope, Heart, Baby, Sparkles, Bone, User, Clock } from 'lucide-react'
 import { Card, Badge } from './UI'
+import { formatPrice } from '../utils/currency'
 
 const categoryIcons = {
   Cardiology: Heart,
@@ -65,9 +66,8 @@ export function ServiceCard({ service, showPrice = true }) {
         
         {showPrice && service.price && (
           <div className="flex items-baseline gap-1">
-            <DollarSign className="w-4 h-4 text-primary-600" />
             <span className="font-semibold text-gray-900">
-              {(service.price / 100).toFixed(2)}
+              {formatPrice(service.price)}
             </span>
           </div>
         )}
@@ -92,7 +92,7 @@ export function ServiceCardCompact({ service }) {
             <Badge variant="default" className={badgeClass}>{service.category}</Badge>
           </div>
           <p className="text-gray-500 text-sm mt-1 truncate">
-            {service.duration_minutes} min • ${(service.price / 100).toFixed(2)}
+            {service.duration_minutes} min • {formatPrice(service.price)}
           </p>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Filter, X, MapPin, Phone, Mail, Clock, CheckCircle } from 'lucide-react'
+import { Filter, X, MapPin, MapPin as MapPinIcon } from 'lucide-react'
 import { Button, Input, Select, Card, Badge } from '../components/UI'
 import { ClinicCard } from '../components/ClinicCard'
 import { useClinics, useDoctor } from '../hooks/useApi'
@@ -12,39 +12,24 @@ const sortOptions = [
 ]
 
 export function Clinics() {
-  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCity, setSelectedCity] = useState('All')
   const [sortBy, setSortBy] = useState('name')
   const [showFilters, setShowFilters] = useState(false)
-  const [selectedClinic, setSelectedClinic] = useState(null)
-
-  // Single doctor - get doctor info for filtering clinics
-  const { data: doctor } = useDoctor(1)
 
   const { data: clinics, loading, error, refetch } = useClinics({
     is_active: true,
   })
+  const { data: doctor } = useDoctor(1)
 
   // Filter clinics to only show those where the doctor has schedules
   const filteredClinics = useMemo(() => {
     if (!clinics) return []
     
     let result = [...clinics]
-    
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      result = result.filter(clinic => 
-        clinic.name.toLowerCase().includes(query) ||
-        clinic.city.toLowerCase().includes(query) ||
-        clinic.state.toLowerCase().includes(query) ||
-        clinic.address.toLowerCase().includes(query)
-      )
+
+    if (selectedCity !== 'All') {
+      result = result.filter(clinic => clinic.city === selectedCity)
     }
-    
-    // Filter to only clinics where doctor has schedules
-    // In a real app, this would check doctor schedules at each clinic
-    // For now, show all active clinics
-    // result = result.filter(clinic => clinic.doctorIds?.includes(doctor.id) || clinic.schedules?.length > 0)
     
     // Sort
     switch (sortBy) {
@@ -63,7 +48,7 @@ export function Clinics() {
     }
     
     return result
-  }, [clinics, searchQuery, sortBy])
+  }, [clinics, selectedCity, sortBy])
 
   // Compute available cities from filtered clinics
   const cities = useMemo(() => {
@@ -72,28 +57,11 @@ export function Clinics() {
     return ['All', ...cityList.sort()]
   }, [clinics])
 
-  // No city filter - show all clinics for this doctor
-  const activeFilters = []
+  const activeFilters = selectedCity !== 'All' ? [`City: ${selectedCity}`] : []
 
   const clearFilters = () => {
-    setSearchQuery('')
+    setSelectedCity('All')
     setSortBy('name')
-  }
-
-  const today = new Date().getDay()
-  const dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-
-  const getTodayHours = (clinic) => {
-    const hoursMap = {
-      0: clinic.hours_monday,
-      1: clinic.hours_tuesday,
-      2: clinic.hours_wednesday,
-      3: clinic.hours_thursday,
-      4: clinic.hours_friday,
-      5: clinic.hours_saturday,
-      6: clinic.hours_sunday,
-    }
-    return hoursMap[today] || 'Closed'
   }
 
   return (
@@ -107,7 +75,7 @@ export function Clinics() {
               animate={{ opacity: 1, y: 0 }}
               className="heading-1 text-gray-900 mb-4"
             >
-              Dr. Sarah Johnson's <span className="text-primary-600">Clinic Locations</span>
+              {doctor?.name || 'Doctor'}'s <span className="text-primary-600">Clinic Locations</span>
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -115,28 +83,16 @@ export function Clinics() {
               transition={{ delay: 0.1 }}
               className="text-body text-gray-600"
             >
-              Clinics where Dr. Sarah Johnson practices, with flexible hours to fit your schedule.
+              Clinics where {doctor?.name || 'your doctor'} practices, with flexible hours to fit your schedule.
             </motion.p>
           </div>
         </div>
       </section>
 
       {/* Search & Filters */}
-      <section className="bg-white border-b border-gray-100 sticky top-16 z-40">
+      <section className="bg-white border-b border-gray-100 sticky top-16 md:top-20 z-40">
         <div className="container py-4">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            {/* Search */}
-            <div className="relative flex-1 max-w-xl">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search clinics by name, city, or address..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="input pl-10 pr-4"
-              />
-            </div>
-
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
               <div className="relative">
@@ -191,20 +147,12 @@ export function Clinics() {
           </div>
 
           {/* Active Filters */}
-          {(activeFilters.length > 0 || searchQuery) && (
+          {activeFilters.length > 0 && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               className="mt-4 flex flex-wrap items-center gap-2"
             >
-              {searchQuery && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  Search: "{searchQuery}"
-                  <button onClick={() => setSearchQuery('')} className="ml-1">
-                    <X className="w-3 h-3" />
-                  </button>
-                </Badge>
-              )}
               {activeFilters.map(filter => (
                 <Badge key={filter} variant="primary" className="flex items-center gap-1">
                   {filter}
@@ -213,7 +161,7 @@ export function Clinics() {
                   </button>
                 </Badge>
               ))}
-              {(activeFilters.length > 0 || searchQuery) && (
+              {activeFilters.length > 0 && (
                 <Button variant="ghost" size="sm" onClick={clearFilters}>
                   Clear All
                 </Button>
@@ -294,21 +242,6 @@ export function Clinics() {
             </div>
           ) : filteredClinics.length > 0 ? (
             <>
-              {/* Map View Toggle */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">View:</span>
-                  <div className="flex bg-gray-100 rounded-lg p-1">
-                    <button className="px-3 py-1.5 rounded text-sm font-medium text-primary-600 bg-white shadow-sm">
-                      List
-                    </button>
-                    <button className="px-3 py-1.5 rounded text-sm font-medium text-gray-500 hover:text-gray-700">
-                      Map
-                    </button>
-                  </div>
-                </div>
-              </div>
-
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredClinics.map((clinic, index) => (
                   <motion.div
@@ -342,112 +275,12 @@ export function Clinics() {
               </motion.div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No clinics found</h3>
               <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                Try adjusting your search or filters to find available locations.
+                No active clinic locations match the selected city.
               </p>
               <Button variant="outline" onClick={clearFilters}>
                 Clear Filters
               </Button>
             </div>
-          )}
-
-          {/* Selected Clinic Details Modal */}
-          {selectedClinic && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-              onClick={() => setSelectedClinic(null)}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-                onClick={e => e.stopPropagation()}
-              >
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900">{selectedClinic.name}</h2>
-                      <p className="text-gray-500 mt-1">{selectedClinic.city}, {selectedClinic.state}</p>
-                    </div>
-                    <button
-                      onClick={() => setSelectedClinic(null)}
-                      className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div className="space-y-6">
-                    {/* Address */}
-                    <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
-                      <MapPinIcon className="w-6 h-6 text-primary-600 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Address</h3>
-                        <p className="text-gray-600 mt-1">{selectedClinic.address}, {selectedClinic.city}, {selectedClinic.state} {selectedClinic.zip_code}</p>
-                      </div>
-                    </div>
-
-                    {/* Contact */}
-                    <div className="grid grid-cols-2 gap-4">
-                      {selectedClinic.phone && (
-                        <a href={`tel:${selectedClinic.phone}`} className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                          <Phone className="w-6 h-6 text-primary-600" />
-                          <div>
-                            <p className="text-sm text-gray-500">Phone</p>
-                            <p className="font-medium text-gray-900">{selectedClinic.phone}</p>
-                          </div>
-                        </a>
-                      )}
-                      {selectedClinic.email && (
-                        <a href={`mailto:${selectedClinic.email}`} className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                          <Mail className="w-6 h-6 text-primary-600" />
-                          <div>
-                            <p className="text-sm text-gray-500">Email</p>
-                            <p className="font-medium text-gray-900">{selectedClinic.email}</p>
-                          </div>
-                        </a>
-                      )}
-                    </div>
-
-                    {/* Hours */}
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-4">Weekly Hours</h3>
-                      <div className="space-y-2">
-                        {dayLabels.map((day, index) => {
-                          const hours = selectedClinic[`hours_${day.toLowerCase()}`]
-                          const isToday = index === today
-                          return hours ? (
-                            <div key={day} className={`flex justify-between p-3 rounded-lg ${isToday ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50'}`}>
-                              <span className={`font-medium ${isToday ? 'text-primary-700' : 'text-gray-700'}`}>
-                                {day} {isToday && <span className="ml-2 text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded">Today</span>}
-                              </span>
-                              <span className={`font-medium ${isToday ? 'text-primary-600' : 'text-gray-600'}`}>
-                                {hours}
-                              </span>
-                            </div>
-                          ) : null
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-3 pt-4 border-t border-gray-100">
-                      <Button variant="outline" className="flex-1" onClick={() => setSelectedClinic(null)}>
-                        <Navigation className="w-4 h-4 mr-2" />
-                        Get Directions
-                      </Button>
-                      <Button className="flex-1" onClick={() => { setSelectedClinic(null); window.location.href = '/book-appointment' }}>
-                        <Building2 className="w-4 h-4 mr-2" />
-                        Book Appointment
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
           )}
         </div>
       </section>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Calendar, Clock, User, Mail, Phone, MapPin, Stethoscope, Building2, Heart, CheckCircle, ChevronRight } from 'lucide-react'
 import { Button, Card, Badge, Avatar, Input, Select, Textarea } from '../components/UI'
@@ -6,6 +7,7 @@ import { AppointmentForm } from '../components/AppointmentForm'
 import { useDoctors, useServices, useClinics } from '../hooks/useApi'
 import { useAppointmentBooking } from '../context/AppointmentContext'
 import { format, parseISO, addDays, startOfDay, isBefore } from 'date-fns'
+import { formatPrice } from '../utils/currency'
 
 const genderOptions = [
   { value: 'male', label: 'Male' },
@@ -31,6 +33,7 @@ export function AppointmentBooking() {
 
   const [currentStep, setCurrentStep] = useState(1)
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [patientErrors, setPatientErrors] = useState({})
 
   const steps = [
     { number: 1, label: 'Select Doctor', icon: Stethoscope },
@@ -41,16 +44,47 @@ export function AppointmentBooking() {
     { number: 6, label: 'Confirm', icon: CheckCircle },
   ]
 
+  const validatePatientInfo = () => {
+    const errors = {}
+    const name = patientInfo.name.trim()
+    const email = patientInfo.email.trim()
+    const phone = patientInfo.phone.trim()
+    const reason = patientInfo.reason.trim()
+
+    if (name.length < 2) errors.name = 'Enter your full name.'
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = 'Enter a valid email address.'
+    if (!/^[\d\s\-+()]{10,}$/.test(phone)) errors.phone = 'Enter a valid phone number.'
+    if (!patientInfo.dob) errors.dob = 'Select your date of birth.'
+    if (!patientInfo.gender) errors.gender = 'Select an option.'
+    if (reason.length < 10) errors.reason = 'Enter at least 10 characters.'
+
+    setPatientErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const canProceed = () => {
+    const isPatientInfoValid = Object.keys(patientErrors).length === 0 &&
+      patientInfo.name.trim().length >= 2 &&
+      (!patientInfo.email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(patientInfo.email.trim())) &&
+      /^[\d\s\-+()]{10,}$/.test(patientInfo.phone.trim()) &&
+      Boolean(patientInfo.dob) &&
+      Boolean(patientInfo.gender) &&
+      patientInfo.reason.trim().length >= 10
+
     switch (currentStep) {
       case 1: return !!selectedDoctor
       case 2: return !!selectedService
       case 3: return !!selectedClinic
       case 4: return !!selectedDate && !!selectedTime
-      case 5: return true // validated by form
-      case 6: return true
+      case 5: return true
+      case 6: return !!selectedDoctor && !!selectedService && !!selectedClinic && !!selectedDate && !!selectedTime && isPatientInfoValid
       default: return false
     }
+  }
+
+  const handleNext = () => {
+    if (currentStep === 5 && !validatePatientInfo()) return
+    setCurrentStep(prev => Math.min(6, prev + 1))
   }
 
   const renderStepIndicator = () => (
@@ -100,7 +134,7 @@ export function AppointmentBooking() {
                 step.number
               )}
             </div>
-            <span className={`text-xs font-medium mt-1 ${currentStep >= step.number ? 'text-primary-600' : 'text-gray-400'}`}>
+            <span className={`text-center text-[10px] leading-tight font-medium mt-1 ${currentStep >= step.number ? 'text-primary-600' : 'text-gray-400'}`}>
               {step.label}
             </span>
           </div>
@@ -200,7 +234,7 @@ export function AppointmentBooking() {
                   {service.duration_minutes} min
                 </span>
                 {service.price && (
-                  <span className="font-semibold text-gray-900">${(service.price / 100).toFixed(2)}</span>
+                  <span className="font-semibold text-gray-900">{formatPrice(service.price)}</span>
                 )}
               </div>
               {selectedService?.id === service.id && (
@@ -361,12 +395,13 @@ export function AppointmentBooking() {
         <p className="text-gray-500 mb-4">Please provide your details to complete the booking</p>
       </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); setCurrentStep(6); }} className="space-y-6">
+      <form onSubmit={(e) => { e.preventDefault(); handleNext() }} className="space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
           <Input
             label="Full Name"
             value={patientInfo.name}
             onChange={(e) => updatePatientInfo('name', e.target.value)}
+            error={patientErrors.name}
             placeholder="John Doe"
             required
           />
@@ -375,8 +410,8 @@ export function AppointmentBooking() {
             type="email"
             value={patientInfo.email}
             onChange={(e) => updatePatientInfo('email', e.target.value)}
+            error={patientErrors.email}
             placeholder="john@example.com"
-            required
           />
         </div>
         <div className="grid md:grid-cols-2 gap-6">
@@ -385,6 +420,7 @@ export function AppointmentBooking() {
             type="tel"
             value={patientInfo.phone}
             onChange={(e) => updatePatientInfo('phone', e.target.value)}
+            error={patientErrors.phone}
             placeholder="(555) 123-4567"
             required
           />
@@ -394,6 +430,7 @@ export function AppointmentBooking() {
             max={format(addDays(new Date(), -1), 'yyyy-MM-dd')}
             value={patientInfo.dob}
             onChange={(e) => updatePatientInfo('dob', e.target.value)}
+            error={patientErrors.dob}
             required
           />
         </div>
@@ -402,12 +439,14 @@ export function AppointmentBooking() {
           options={genderOptions}
           value={patientInfo.gender}
           onChange={(e) => updatePatientInfo('gender', e.target.value)}
+          error={patientErrors.gender}
           required
         />
         <Textarea
           label="Reason for Visit"
           value={patientInfo.reason}
           onChange={(e) => updatePatientInfo('reason', e.target.value)}
+          error={patientErrors.reason}
           placeholder="Describe your symptoms or reason for visit..."
           rows={3}
           required
@@ -450,7 +489,7 @@ export function AppointmentBooking() {
             <div className="p-4 bg-white rounded-lg">
               <p className="text-sm text-gray-500 mb-1">Service</p>
               <p className="font-medium text-gray-900">{selectedService?.name}</p>
-              <p className="text-gray-500 text-sm">{selectedService?.duration_minutes} min • ${(selectedService?.price / 100).toFixed(2)}</p>
+              <p className="text-gray-500 text-sm">{selectedService?.duration_minutes} min • {formatPrice(selectedService?.price)}</p>
             </div>
             <div className="p-4 bg-white rounded-lg">
               <p className="text-sm text-gray-500 mb-1">Location</p>
@@ -526,7 +565,7 @@ export function AppointmentBooking() {
       </section>
 
       {/* Progress */}
-      <section className="bg-white border-b border-gray-100 py-4 sticky top-16 z-40">
+      <section className="bg-white border-b border-gray-100 py-4 sticky top-16 md:top-20 z-40">
         <div className="container">
           {renderMobileStepIndicator()}
           {renderStepIndicator()}
@@ -553,7 +592,7 @@ export function AppointmentBooking() {
                 
                 {currentStep < 6 ? (
                   <Button
-                    onClick={() => setCurrentStep(prev => Math.min(6, prev + 1))}
+                    onClick={handleNext}
                     disabled={!canProceed()}
                   >
                     Next
@@ -563,6 +602,7 @@ export function AppointmentBooking() {
                   <Button
                     size="lg"
                     onClick={() => setShowConfirmation(true)}
+                    disabled={!canProceed()}
                   >
                     Confirm Appointment
                     <CheckCircle className="w-4 h-4 ml-2" />

@@ -133,7 +133,7 @@ class ScheduleResponse(ScheduleBase):
 # Appointment Schemas
 class AppointmentBase(BaseModel):
     patient_name: str = Field(..., min_length=1, max_length=100)
-    patient_email: EmailStr
+    patient_email: Optional[EmailStr] = None
     patient_phone: Optional[str] = None
     patient_dob: Optional[date] = None
     patient_gender: Optional[str] = None
